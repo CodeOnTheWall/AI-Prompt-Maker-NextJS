@@ -8,9 +8,11 @@
   Note: The styles for this gradient grid background is heavily inspired by the creator of this amazing site (https://dub.sh) – all credits go to them! 
 */
 
+/* This will stack :after, :before, .main (with main being closest to screen)*/
 .main {
   width: 100vw;
   min-height: 100vh;
+  /* element is removed from normal doc flow and positioned behind everything*/
   position: fixed;
   display: flex;
   justify-content: center;
@@ -18,24 +20,27 @@
   pointer-events: none;
 }
 
-/* the .main:before pseudo-element is inserted
- before the content of the .main element, and the .main:after 
- pseudo-element is inserted after the content of the .main element. */
-
-/* Although the .main:before pseudo-element has a higher z-index, it will still be visually
-   positioned behind the .main element. The higher z-index only matters when there are other
-   elements with specified z-index values. */
+/* in the main stacking order, this is stacked above :after, since
+before is at the top (first child) and we have a higher z-index 
+:before creates a pseudo-element that is the first child of the selected 
+element (before the element), befores and afters are usually paired with content css property*/
 .main:before {
   /* position is the 0 (center), this is a static gradient that isnt moving */
   background: radial-gradient(circle, rgba(2, 0, 36, 0) 0, #fafafa 100%);
   position: absolute;
   content: "";
+  /* will appear visually above lower z-indexes */
   z-index: 2;
   width: 100%;
   height: 100%;
   top: 0;
 }
 
+/* in the main stacking order, this will be furthest away given 
+after is last child and we have a lower z-index z-index 1
+which will stack this behind :before
+after creates a pseudo-element that is the last child of the selected 
+element (furthest). */
 .main:after {
   content: "";
   background-image: url("/assets/images/grid.svg");
@@ -107,6 +112,7 @@
   @apply mt-5 text-5xl font-extrabold leading-[1.15] text-black sm:text-6xl;
 }
 
+/* bg-clip-text and text-transparent so the bg is shaped to the text and not an actual bg */
 .orange_gradient {
   @apply bg-gradient-to-r from-amber-500 via-orange-600 to-yellow-500 bg-clip-text text-transparent;
 }
@@ -119,6 +125,7 @@
   @apply bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent;
 }
 
+/* at sm and above: 20px */
 .desc {
   @apply mt-5 text-lg text-gray-600 sm:text-xl max-w-2xl;
 }
@@ -154,6 +161,7 @@
 }
 
 /* Nav Component */
+/* hidden below sm */
 .logo_text {
   @apply max-sm:hidden font-satoshi font-semibold text-lg text-black tracking-wide;
 }
@@ -171,6 +179,7 @@
   @apply flex-1 break-inside-avoid rounded-lg border border-gray-300 bg-white/20 bg-clip-padding p-6 pb-4 backdrop-blur-lg backdrop-filter md:w-[360px] w-full h-fit;
 }
 
+/* justify-content is main axis, items-center is cross axis */
 .flex-center {
   @apply flex justify-center items-center;
 }
