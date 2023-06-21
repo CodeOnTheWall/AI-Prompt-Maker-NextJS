@@ -33,6 +33,7 @@ export default function MyProfile() {
     // causing another re render, and not posts is a loaded array
 
     // console.log("inside use effect");
+    // test test test
 
     const fetchPosts = async () => {
       // console.log("fetching posts");
