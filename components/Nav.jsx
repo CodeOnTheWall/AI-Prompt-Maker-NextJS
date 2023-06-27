@@ -4,19 +4,31 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 import { signIn, signOut, useSession, getProviders } from "next-auth/react";
 
-// NEXT-AUTH notes
-// 1. user signs in through provider
-// 2. NextAuth sets sessionToken cookie in browser
-// session token by default is a signed JWT containing information about
-// the user
-// pages that use useSession will verify the signedJWT via nextauth, which
-// verifies against the nextauth env key
+// Nav Render Cycle
+// 1. component mounts, useSession runs, if null or undefined, then useEffect will run
+// 2. if theres a session, this will cause component to re render and then code
+// that relies on session? will render then
+// 3. useEffect will run which updates providers, since this is a change state, this causes
+// the component to re render
+// 4. useSession state hasnt changed so that wont re run, since states dont get wiped
+// on re renders, since this isnt considered a component unmount, on page refreshes yes
+
+// NextAuth flow notes
+// 1. User clicks login button. User is redirected to the auth provider
+// 2. After successful auth, provider sends an auth token to nextauth
+// 3. nextauth receives the auth token and exchanges it with provider for aT and profile.
+// 4. nextauth passes profile to `signIn` callback.
+// 5. `signIn` callback uses profile to create or update user in database.
+// 6. nextauth then creates session object and sets session cookie in user's browser.
 
 export default function Nav() {
   // useSession hook gets the next-auth session token cookie from browser
-  // useSession hook then calls the async session callback, which uses the
+  // and decrypts and verifies the token
+  // useSession hook then calls the async session callback (it itself is the callback), which uses the
   // session token cookie to get the users info from db, then the async session
-  // callback returns the session object
+  // callback returns the session object (re naming data to session)
+  // useSession uses useState behind the scenes with causes re render if there is
+  // a session, if null or undefined, this wont cause a re render
   const { data: session } = useSession();
 
   // Just Learned; can use useStateSnippet!
@@ -29,7 +41,7 @@ export default function Nav() {
   // Once the promise has resolved, the useEffect hook sets the providers
   // state variable to the response from the getProviders() function.
   useEffect(() => {
-    // getProviders fetchs the list of providers via /api/auth/[...nextaut]
+    // getProviders fetchs the list of providers via /api/auth/[...nextauth]
     const setUpProviders = async () => {
       const response = await getProviders();
       setProviders(response);
@@ -42,20 +54,31 @@ export default function Nav() {
     // of virtual DOM to the actual DOM
   }, []);
 
-  // const signOut = async () => {
-  //   // Clear the session state variable.
-  //   session = null;
-
-  //   // Clear the session from NextAuth.
-  //   await nextAuth.signOut();
-
-  //   // Redirect the user to the home page.
-  //   window.location.href = "/";
-  // };
+  /* The Object.values() method returns an array of all the 
+          values in an object. The providers variable is an object that
+          contains the list of providers. Object.values(providers) method
+          will return an array of all the values in the providers object.
+         */
+  const SignInButtons = () => (
+    <>
+      {providers &&
+        Object.values(providers).map((provider) => (
+          <button
+            type="button"
+            key={provider.name}
+            // causes component to re render which then should get the session
+            onClick={() => signIn(provider.id)}
+            className="black_btn"
+          >
+            Sign In
+          </button>
+        ))}
+    </>
+  );
 
   return (
     <nav className="flex-between w-full mb-16 mt-5 pt-2">
-      <Link href="/" className=" flex gap-2 flex-center">
+      <Link href="/" className=" flex gap-3 flex-center">
         <Image
           width={30}
           height={30}
@@ -68,7 +91,12 @@ export default function Nav() {
 
       {/* Desktop Nav */}
       {/* above sm its given flex */}
-      <div className="sm:flex hidden">
+      <div className="hidden sm:flex ">
+        {/* session?.user - The session object is being accessed using optional 
+        chaining (?.). This means that if the session object is null or undefined,
+         the expression will short-circuit and evaluate to undefined without
+          throwing an error. If the session object exists, it will proceed to
+           check the user property within the session object. */}
         {session?.user ? (
           <div className="flex gap-3 md:gap-5">
             <Link href="/create-prompt" className="black_btn">
@@ -81,11 +109,8 @@ export default function Nav() {
 
             <Link href="/profile">
               <Image
-                // The ?. (optional chaining) operator is used to handle
-                // cases where the session object or the user object might
-                // be null or undefined. If any of these objects are null
-                // or undefined, the expression short-circuits and
-                // evaluates to undefined.
+                // using option chaining to prevent errors, if session is null or
+                // undefined, we wont try to evaluate user
                 src={session?.user.image}
                 width={37}
                 height={37}
@@ -95,30 +120,13 @@ export default function Nav() {
             </Link>
           </div>
         ) : (
-          <>
-            {/* The Object.values() method returns an array of all the 
-            values in an object. The providers variable is an object that
-            contains the list of providers. Object.values(providers) method
-            will return an array of all the values in the providers object.
-           */}
-            {providers &&
-              Object.values(providers).map((provider) => (
-                <button
-                  type="button"
-                  key={provider.name}
-                  onClick={() => signIn(provider.id)}
-                  className="black_btn"
-                >
-                  Sign In
-                </button>
-              ))}
-          </>
+          <SignInButtons />
         )}
       </div>
 
       {/* Mobile Nav */}
       {/* above sm its hidden */}
-      <div className="sm:hidden flex relative">
+      <div className="flex sm:hidden relative">
         {session?.user ? (
           <div className="flex">
             <Image
@@ -161,24 +169,7 @@ export default function Nav() {
             )}
           </div>
         ) : (
-          <>
-            {/* The Object.values() method returns an array of all the 
-          values in an object. The providers variable is an object that
-          contains the list of providers. Object.values(providers) method
-          will return an array of all the values in the providers object.
-         */}
-            {providers &&
-              Object.values(providers).map((provider) => (
-                <button
-                  type="button"
-                  key={provider.name}
-                  onClick={() => signIn(provider.id)}
-                  className="black_btn"
-                >
-                  Sign In
-                </button>
-              ))}
-          </>
+          <SignInButtons />
         )}
       </div>
     </nav>

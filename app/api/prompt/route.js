@@ -6,6 +6,8 @@ export const GET = async (req, res) => {
     // reminder this is a lambda func, meaning only connects when need to
     // and dies when process completes
     await connectToDB();
+    // have to populate the creator since its its own model (user)
+    // otherwise we would only get the id of the creator, but not the full user model
     const prompts = await Prompt.find({}).populate("creator");
 
     return new Response(JSON.stringify(prompts), { status: 200 });

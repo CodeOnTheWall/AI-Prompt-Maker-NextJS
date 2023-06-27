@@ -16,7 +16,7 @@ const PromptSchema = new Schema({
   },
 });
 
-// this would be thr express way where the server is always up and running
+// this would be the express way where the server is always up and running
 // but in nextJS its only up when its needed/called
 // const User = model("User", UserSchema);
 // export default User;

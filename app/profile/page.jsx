@@ -10,6 +10,7 @@ import Profile from "@components/Profile";
 // setPosts state with those posts, and then we re render again
 export default function MyProfile() {
   // useSession hook is called on every page load, which causes a component re render
+  // if we have a session
   const { data: session } = useSession();
   // console.log(session);
 

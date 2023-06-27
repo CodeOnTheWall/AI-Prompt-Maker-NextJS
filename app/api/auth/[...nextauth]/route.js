@@ -27,9 +27,8 @@ const handler = NextAuth({
       session.user.id = sessionUser._id.toString();
       return session;
     },
-    // this signIn will sign a JWT with the email, username, and image
-    // as well as the secret key from .env
-    // dont need to sign the jwt myself, as nextauth auto does this
+    // signIn is only sent on successful sign in, profile is from the provider
+    // so this wont be called until user authenticated
     async signIn({ profile }) {
       try {
         await connectToDB();
